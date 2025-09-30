@@ -1,5 +1,5 @@
 import argparse
-from scapy.all import AsyncSniffer, get_if_list, conf, hexdump
+from scapy.all import AsyncSniffer, get_if_list, conf
 from threading import Thread, Lock, Event
 from packet_parsers import parse_ethernet_header
 import socket
@@ -15,22 +15,15 @@ stop_event = Event()
 global_packet_limit = 0
 
 
-# Add this debug function to your packet_callback in main.py
+# Function to handle each captured packet
 def packet_callback(packet):
     global packet_counter
-    # print("    DEBUG: packet_callback called!")  # DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG ... 
     with counter_lock:
         if packet_counter < global_packet_limit:
             packet_counter += 1
             print(f"\nCaptured Packet {packet_counter}:")
-            # print(f"    DEBUG: Raw packet length: {len(bytes(packet))}")  # DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG ... 
-
-            # hexdump(packet)
-            print("")
-
             raw_data = bytes(packet)
             hex_data = raw_data.hex()
-            # print(f"    DEBUG: Hex data first 32 chars: {hex_data[:32]}")  # DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG ... 
             ether_type, payload = parse_ethernet_header(hex_data)
 
             # Stop capturing if the limit is reached
@@ -145,7 +138,6 @@ if __name__ == "__main__":
     if args.interface.lower() == "any":
         capture_on_all_interfaces(args.filter, args.count)
     else:
-        # global_packet_limit = args.count  # NEW ADDITION ######################################################################
         if has_global_ip(args.interface):
             try:
                 capture_packets(args.interface, args.filter)
